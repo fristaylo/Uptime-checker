@@ -289,7 +289,8 @@ const saveResultToDb = async (
     dnsTime,
     tlsTime,
     tcpTime,
-    serverTiming = null
+    serverTiming = null,
+    failureReason = null
 ) => {
     if (isProbeNoiseCode(statusCode)) {
         const lastSuccess = await fetchLastSuccessfulHttpLog(target, country, city);
@@ -315,8 +316,8 @@ const saveResultToDb = async (
 
     const query = `
       INSERT INTO http_logs (
-        probe_id, domain, country, city, asn, network, status_code, total_time, download_time, first_byte_time, dns_time, tls_time, tcp_time, server_timing
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        probe_id, domain, country, city, asn, network, status_code, total_time, download_time, first_byte_time, dns_time, tls_time, tcp_time, server_timing, failure_reason
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
     `;
     const safeTotalTime = toNonNegativeNumberOrNull(finalTotalTime);
     const values = [
@@ -334,6 +335,7 @@ const saveResultToDb = async (
         toNonNegativeNumberOrNull(tlsTime),
         toNonNegativeNumberOrNull(tcpTime),
         serverTiming ? JSON.stringify(serverTiming) : null,
+        failureReason ? String(failureReason).slice(0, 500) : null,
     ];
     await pool.query(query, values);
 };
@@ -401,7 +403,7 @@ const checkAndSaveDomain = async (domain, locations, intervalMs) => {
                 }
             } else {
                 for (const location of locations) {
-                    await saveResultToDb("failed", target, location.country, location.city, null, null, INTERNAL_STATUS.PROBE_FAIL, null, null, null, null, null, null, false);
+                    await saveResultToDb("failed", target, location.country, location.city, null, null, INTERNAL_STATUS.PROBE_FAIL, null, null, null, null, null, null, null, `create ${createMeasurementResponse.status}: ${String(errorBody).slice(0, 200)}`);
                 }
             }
             return;
@@ -532,7 +534,8 @@ const checkAndSaveDomain = async (domain, locations, intervalMs) => {
                 result.dnsTime,
                 result.tlsTime,
                 result.tcpTime,
-                result.serverTiming
+                result.serverTiming,
+                result.failureReason || null
             );
         }
         console.log(
@@ -547,7 +550,7 @@ const checkAndSaveDomain = async (domain, locations, intervalMs) => {
             ? INTERNAL_STATUS.MEASUREMENT_TIMEOUT
             : INTERNAL_STATUS.PROBE_FAIL;
         for (const location of locations) {
-            await saveResultToDb("failed", target, location.country, location.city, null, null, failureCode, null, null, null, null, null, null, false);
+            await saveResultToDb("failed", target, location.country, location.city, null, null, failureCode, null, null, null, null, null, null, null, err.message);
         }
     }
 };

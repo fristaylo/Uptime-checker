@@ -57,6 +57,8 @@ export const createHttpTable = async () => {
         await pool.query(`ALTER TABLE http_logs ADD COLUMN IF NOT EXISTS server_timing JSONB;`);
         await pool.query(`ALTER TABLE http_hourly_logs ADD COLUMN IF NOT EXISTS server_timing JSONB;`);
 
+        await pool.query(`ALTER TABLE http_logs ADD COLUMN IF NOT EXISTS failure_reason TEXT;`);
+
         const pingLogsQuery = `
     CREATE TABLE IF NOT EXISTS ping_logs (
       id SERIAL PRIMARY KEY,
