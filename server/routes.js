@@ -244,6 +244,7 @@ router.get("/lighthouse-screenshot", async (req, res) => {
 
 const PROBE_ERROR_CODE = 900;
 const SLOW_RESPONSE_MS = 1500;
+const SUMMARY_COUNTRIES = ["RU", "UA", "BY"];
 const IGNORED_ERROR_CODES = new Set([904, 905]);
 const CAPTCHA_STATUS_CODES = new Set([202, 307]);
 
@@ -297,10 +298,12 @@ router.get("/status-summary", async (req, res) => {
             `
             SELECT domain, country, city, status_code, total_time, created_at
             FROM http_logs
-            WHERE created_at >= NOW() - $1::interval AND city IS NOT NULL
+            WHERE created_at >= NOW() - $1::interval
+              AND city IS NOT NULL
+              AND country = ANY($2::text[])
             ORDER BY created_at ASC;
             `,
-            ["24 hour"]
+            ["24 hour", SUMMARY_COUNTRIES]
         );
 
         const byDomain = {};
