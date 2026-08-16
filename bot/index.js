@@ -19,7 +19,7 @@ const API_URL = process.env.API_URL ?? "http://app:3000";
 const SITE_URL = process.env.SITE_URL ?? "https://yummystatus.me";
 const SCREENSHOT_URL =
     process.env.SCREENSHOT_URL ??
-    "https://image.thum.io/get/width/1280/crop/600/refresh/60/wait/12/noanimate/{url}";
+    "https://image.thum.io/get/viewportWidth/1400/width/1400/crop/600/refresh/60/wait/12/noanimate/{url}";
 const SCREENSHOT_TARGET =
     process.env.SCREENSHOT_TARGET ?? `${SITE_URL}/?bare=1`;
 const INTERVAL_MS = Number(process.env.BOT_INTERVAL_MS ?? 2 * 60 * 1000);
