@@ -25,6 +25,20 @@ services:
             - PSI_API_KEY=${PSI_API_KEY}
         restart: always
 
+    bot:
+        image: ${IMAGE}
+        command: bun bot/index.js
+        depends_on:
+            - app
+        environment:
+            - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+            - TG_CHAT_ID=${TG_CHAT_ID}
+            - API_URL=http://app:3000
+            - BOT_STATE_FILE=/data/state.json
+        volumes:
+            - botstate:/data
+        restart: always
+
     db:
         image: postgres:13
         ports:
@@ -39,3 +53,4 @@ services:
 
 volumes:
     pgdata:
+    botstate:

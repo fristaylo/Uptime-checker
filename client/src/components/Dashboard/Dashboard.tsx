@@ -8,7 +8,7 @@ import { useDataStatus } from "../../context/DataStatusContext.tsx";
 import { useDashboardSettings } from "../../context/DashboardSettingsContext.tsx";
 import CountryChart from "../CountryChart/CountryChart.tsx";
 import Lighthouse from "../Lighthouse/Lighthouse.tsx";
-import { CHART_SPIKE_MS } from "../../data/constants.ts";
+import { CHART_SPIKE_MS, isBareView } from "../../data/constants.ts";
 
 interface Log {
     created_at: string;
@@ -333,7 +333,7 @@ const Dashboard = () => {
         };
     }, [domain, timeRange, autoRefresh, dateRange?.from, dateRange?.to]);
 
-    const controls = (
+    const controls = isBareView() ? null : (
         <div className={styles.controls}>
             <Menu />
         </div>

@@ -16,7 +16,9 @@ WORKDIR /app
 
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder /app/client/src/data ./client/src/data
 COPY --from=builder /app/node_modules ./node_modules
+COPY bot/ ./bot
 COPY package.json .
 
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf

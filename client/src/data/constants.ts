@@ -100,6 +100,10 @@ export const isProbeNoise = (statusCode: number | null | undefined): boolean =>
 export const isRelevantStatus = (statusCode: number | null | undefined): boolean =>
     !isProbeNoise(statusCode);
 
+export const isBareView = (): boolean =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("bare");
+
 export type DomainHealth = "stable" | "warning" | "critical";
 
 export const HEALTH_LABEL: Record<DomainHealth, string> = {

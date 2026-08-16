@@ -24,6 +24,9 @@ Thumbs.db
 
 *.env
 
+# Bot
+bot/.state.json
+
 # IDE
 .vscode
 .claude

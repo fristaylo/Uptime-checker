@@ -13,13 +13,15 @@ import {
     useDataStatus,
 } from "./context/DataStatusContext.tsx";
 import { DashboardSettingsProvider } from "./context/DashboardSettingsContext.tsx";
+import { isBareView } from "./data/constants.ts";
 
 function App() {
     const { isAnyError, isAnyStale } = useDataStatus();
+    const bare = isBareView();
 
     return (
         <>
-            <Header />
+            {!bare && <Header />}
             <div className="app-container">
                 {(isAnyStale || isAnyError) && (
                     <StaleDataWarning isError={isAnyError} />
@@ -30,7 +32,7 @@ function App() {
                     <Route path="/:domain" element={<Domain />} />
                 </Routes>
             </div>
-            <Footer />
+            {!bare && <Footer />}
         </>
     );
 }
