@@ -66,6 +66,8 @@ jobs:
                       echo "GLOBALPING_API_KEY6=${{ secrets.GLOBALPING_API_KEY6 }}" >> .env
                       echo "GLOBALPING_SECRET_KEY=${{ secrets.GLOBALPING_SECRET_KEY }}" >> .env
                       echo "PSI_API_KEY=${{ secrets.PSI_API_KEY }}" >> .env
+                      echo "TG_BOT_TOKEN=${{ secrets.TG_BOT_TOKEN }}" >> .env
+                      echo "TG_CHAT_ID=${{ secrets.TG_CHAT_ID }}" >> .env
                       sudo docker system prune -a -f || true
                       
                       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
