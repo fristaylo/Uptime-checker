@@ -134,12 +134,12 @@ export const getDomainHealth = (
         (a, b) =>
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
-    const lastLogs = sortedLogs.slice(-4);
-    const last4Errors = lastLogs.length >= 4 && lastLogs.every(isErrorLog);
+    const lastLogs = sortedLogs.slice(-3);
+    const last3Errors = lastLogs.length >= 3 && lastLogs.every(isErrorLog);
     const last2Errors =
         lastLogs.length >= 2 && lastLogs.slice(-2).every(isErrorLog);
 
-    if (errorRate >= 20 || last4Errors) return "critical";
+    if (errorRate >= 20 || last3Errors) return "critical";
     if (errorRate >= 5 || last2Errors) return "warning";
     return "stable";
 };
