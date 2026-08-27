@@ -130,6 +130,11 @@ const sendAlert = async (caption) => {
     return { messageId: message.message_id, hasPhoto: false };
 };
 
+const messageGone = (error) =>
+    /message to edit not found|message can't be edited|MESSAGE_ID_INVALID/i.test(
+        error.message
+    );
+
 const editAlert = async (state, caption) => {
     const image = state.hasPhoto ? await fetchScreenshot() : null;
 
@@ -138,48 +143,51 @@ const editAlert = async (state, caption) => {
             `--- update (${caption.length} симв., фото: ${Boolean(image)}) ---`
         );
         console.log(caption);
-        return;
+        return true;
     }
 
-    if (image) {
-        const form = new FormData();
-        form.set("chat_id", CHAT_ID);
-        form.set("message_id", String(state.messageId));
-        form.set(
-            "media",
-            JSON.stringify({
-                type: "photo",
-                media: "attach://photo",
+    try {
+        if (image) {
+            const form = new FormData();
+            form.set("chat_id", CHAT_ID);
+            form.set("message_id", String(state.messageId));
+            form.set(
+                "media",
+                JSON.stringify({
+                    type: "photo",
+                    media: "attach://photo",
+                    caption,
+                    parse_mode: "HTML",
+                })
+            );
+            form.set(
+                "photo",
+                new Blob([image], { type: "image/png" }),
+                "status.png"
+            );
+            await telegram("editMessageMedia", form);
+        } else if (state.hasPhoto) {
+            await telegram("editMessageCaption", {
+                chat_id: CHAT_ID,
+                message_id: state.messageId,
                 caption,
                 parse_mode: "HTML",
-            })
-        );
-        form.set(
-            "photo",
-            new Blob([image], { type: "image/png" }),
-            "status.png"
-        );
-        await telegram("editMessageMedia", form);
-        return;
+            });
+        } else {
+            await telegram("editMessageText", {
+                chat_id: CHAT_ID,
+                message_id: state.messageId,
+                text: caption,
+                parse_mode: "HTML",
+                disable_web_page_preview: true,
+            });
+        }
+        return true;
+    } catch (error) {
+        if (!messageGone(error)) throw error;
+        console.error("Сообщение недоступно для правки:", error.message);
+        return false;
     }
-
-    if (state.hasPhoto) {
-        await telegram("editMessageCaption", {
-            chat_id: CHAT_ID,
-            message_id: state.messageId,
-            caption,
-            parse_mode: "HTML",
-        });
-        return;
-    }
-
-    await telegram("editMessageText", {
-        chat_id: CHAT_ID,
-        message_id: state.messageId,
-        text: caption,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-    });
 };
 
 const signatureOf = (diagnosis) =>
@@ -224,17 +232,17 @@ const tick = async () => {
 
         const startedAt = new Date(state.startedAt);
         const alert = buildAlert(diagnosis, startedAt);
-        await editAlert(
-            state,
-            withUpdate(alert, {
-                kind: "ongoing",
-                at: now,
-                durationMs: now.getTime() - startedAt.getTime(),
-                changed,
-            })
-        );
+        const update = withUpdate(alert, {
+            kind: "ongoing",
+            at: now,
+            durationMs: now.getTime() - startedAt.getTime(),
+            changed,
+        });
+        const edited = await editAlert(state, update);
+        const resent = edited ? null : await sendAlert(update);
         writeState({
             ...state,
+            ...resent,
             updatedAt: now.toISOString(),
             signature,
             alert,
